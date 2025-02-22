@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dynamic Sidebar Site</title>
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+    }
+    /* Fixed Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200px;
+      height: 100%;
+      background: #0f0f0f;
+      padding: 10px;
+      transition: background 0.3s;
+      z-index: 100;
+    }
+    .sidebar a {
+      display: block;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 15px;
+      margin-bottom: 5px;
+      border-radius: 4px;
+      font-size: 18px;
+      background: #0f0f0f;
+      transition: background 0.3s;
+    }
+    .sidebar a:hover { background: #333333; }
+    .sidebar a.active { background: #333333; font-weight: bold; }
+    .sidebar a.active:hover { background: #4d4d4d; }
+    /* Content */
+    .content {
+      margin-left: 200px;
+      padding: 20px;
+      background: #0f0f0f;
+    }
+    /* Burger Menu for Small Screens */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
+      background: #0f0f0f;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      z-index: 200;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      .menu-toggle { display: block; }
+      .sidebar { left: -200px; transition: left 0.3s; }
+      .sidebar.open { left: 0; }
+      .content { margin-left: 0; transition: margin-left 0.3s; }
+      .content.shift { margin-left: 200px; }
+    }
+    /* Grid Layout */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 40px;
+    }
+    .grid a, .grid div {
+      display: block;
+      border-radius: 4px;
+      overflow: hidden;
+      background: #0f0f0f;
+      aspect-ratio: 16/9;
+      position: relative;
+    }
+    /* Inset thumbnail: image is 2px smaller on each side */
+    .grid img {
+      width: calc(100% - 4px);
+      height: calc(100% - 4px);
+      object-fit: cover;
+      margin: 2px;
+      border-radius: 8px;
+      background: #0f0f0f;
+    }
+    /* Tooltip for Thumbnails */
+    .thumb {
+      position: relative;
+      display: inline-block;
+    }
+    .thumb .desc {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      font-size: 18px;
+      padding: 10px;
+      box-sizing: border-box;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .thumb:hover .desc {
+      display: flex;
+    }
+    /* Contact Form (smaller inputs) */
+    .contact-form {
+      margin-top: 40px;
+    }
+    .contact-form label {
+      display: block;
+      margin: 5px 0;
+    }
+    .contact-form input {
+      width: 100%;
+      padding: 2px;
+      height: 30px;
+      background: #212121;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+    .contact-form textarea {
+      width: 100%;
+      padding: 2px;
+      height: 60px;
+      background: #212121;
+      border: 1px solid #444;
+      color: #fff;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+    .contact-form button {
+      background: #1a1a1a;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 14px;
+    }
+    .contact-form button:hover { background: #2a2a2a; }
+    /* Back-to-Top Button */
+    #backToTop {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+      cursor: pointer;
+      transition: background 0.3s;
+      z-index: 200;
+    }
+    #backToTop:hover { background: #555; }
+    /* Rotated arrow inside back-to-top button */
+    .arrow-up {
+      display: inline-block;
+      transform: rotate(-90deg);
+    }
+  </style>
+</head>
+<body>
+  <!-- Burger Menu Button -->
+  <button class="menu-toggle" onclick="toggleMenu()">&#9776;</button>
+  <!-- Back-to-Top Button -->
+  <button id="backToTop" onclick="scrollToTop()"><span class="arrow-up">➜</span></button>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <a href="#" id="home-link" onclick="return loadContent('home', this);">Home</a>
+    <a href="#" onclick="return loadContent('toppicks', this);">Top Picks</a>
+    <a href="#" onclick="return loadContent('youtube', this);">YouTube</a>
+    <a href="#" onclick="return loadContent('music', this);">Music</a>
+    <a href="#" onclick="return loadContent('videogames', this);">Video Games</a>
+    <a href="#" onclick="return loadContent('books', this);">Books</a>
+    <a href="#" onclick="return loadContent('services', this);">Services</a>
+    <a href="#" onclick="return loadContent('photography', this);">Photography</a>
+    <a href="#" onclick="return loadContent('contact', this);">Contact</a>
+  </div>
+  <!-- Main Content Area -->
+  <div class="content" id="main-content">
+    <h1>Welcome</h1>
+    <p>Select a category from the sidebar.</p>
+  </div>
+  <script>
+    // Back-to-Top functionality
+    window.onscroll = function() {
+      document.getElementById("backToTop").style.display =
+        (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) ? "block" : "none";
+    };
+    function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    // Helper to get display title
+    function getDisplayTitle(category) {
+      if (category === "toppicks") return "Top Picks";
+      if (category === "videogames") return "Video Games";
+      return category.charAt(0).toUpperCase() + category.slice(1);
+    }
+    // Extra items arrays (3 extra each) for non-photography categories
+    const extraToppicks = [
+      { img: "https://img.youtube.com/vi/M7lc1UVf-VE/0.jpg", link: "https://www.youtube.com/watch?v=M7lc1UVf-VE" },
+      { img: "https://img.youtube.com/vi/E7wJTI-1dvQ/0.jpg", link: "https://www.youtube.com/watch?v=E7wJTI-1dvQ" },
+      { img: "https://img.youtube.com/vi/iik25wqIuFo/0.jpg", link: "https://www.youtube.com/watch?v=iik25wqIuFo" }
+    ];
+    const extraYoutube = [
+      { img: "https://img.youtube.com/vi/ScMzIvxBSi4/0.jpg", link: "https://www.youtube.com/watch?v=ScMzIvxBSi4" },
+      { img: "https://img.youtube.com/vi/OPf0YbXqDm0/0.jpg", link: "https://www.youtube.com/watch?v=OPf0YbXqDm0" },
+      { img: "https://img.youtube.com/vi/1w7OgIMMRc4/0.jpg", link: "https://www.youtube.com/watch?v=1w7OgIMMRc4" }
+    ];
+    const extraMusic = [
+      { img: "https://img.youtube.com/vi/ktvTqknDobU/0.jpg", link: "https://www.youtube.com/watch?v=ktvTqknDobU" },
+      { img: "https://img.youtube.com/vi/uelHwf8o7_U/0.jpg", link: "https://www.youtube.com/watch?v=uelHwf8o7_U" },
+      { img: "https://img.youtube.com/vi/3JZ4pnNtyxQ/0.jpg", link: "https://www.youtube.com/watch?v=3JZ4pnNtyxQ" }
+    ];
+    const extraVideogames = [
+      { img: "https://img.youtube.com/vi/X2Y3Ww5_6gU/0.jpg", link: "https://www.youtube.com/watch?v=X2Y3Ww5_6gU" },
+      { img: "https://img.youtube.com/vi/N4mEzFDjqtA/0.jpg", link: "https://www.youtube.com/watch?v=N4mEzFDjqtA" },
+      { img: "https://img.youtube.com/vi/mWRsgZuwf_8/0.jpg", link: "https://www.youtube.com/watch?v=mWRsgZuwf_8" }
+    ];
+    const extraBooks = [
+      { img: "https://img.youtube.com/vi/fLexgOxsZu0/0.jpg", link: "https://www.youtube.com/watch?v=fLexgOxsZu0" },
+      { img: "https://img.youtube.com/vi/2vjPBrBU-TM/0.jpg", link: "https://www.youtube.com/watch?v=2vjPBrBU-TM" },
+      { img: "https://img.youtube.com/vi/QtXby3twMmI/0.jpg", link: "https://www.youtube.com/watch?v=QtXby3twMmI" }
+    ];
+    const extraServices = [
+      { img: "https://img.youtube.com/vi/06vZtI9c6_M/0.jpg", link: "https://www.youtube.com/watch?v=06vZtI9c6_M" },
+      { img: "https://img.youtube.com/vi/LM8XHLYJoYs/0.jpg", link: "https://www.youtube.com/watch?v=LM8XHLYJoYs" },
+      { img: "https://img.youtube.com/vi/Zi_XLOBDo_Y/0.jpg", link: "https://www.youtube.com/watch?v=Zi_XLOBDo_Y" }
+    ];
+    // For Photography: generate 19 random public domain photos via picsum.photos
+    const photographyData = [];
+    for (let i = 1; i <= 19; i++) {
+      photographyData.push({ 
+        img: `https://picsum.photos/seed/photography${i}/800/600`,
+        link: `https://picsum.photos/seed/photography${i}/800/600`
+      });
+    }
+    // Category Data object
+    const categoryData = {
+      toppicks: [
+        { img: "https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg", link: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" },
+        { img: "https://img.youtube.com/vi/9bZkp7q19f0/0.jpg", link: "https://www.youtube.com/watch?v=9bZkp7q19f0" },
+        { img: "https://img.youtube.com/vi/dTAAsCNK7RA/0.jpg", link: "https://www.youtube.com/watch?v=dTAAsCNK7RA" },
+        { img: "https://img.youtube.com/vi/3fumBcKC6RE/0.jpg", link: "https://www.youtube.com/watch?v=3fumBcKC6RE" }
+      ].concat(extraToppicks),
+      youtube: [
+        { img: "https://img.youtube.com/vi/09R8_2nJtjg/0.jpg", link: "https://www.youtube.com/watch?v=09R8_2nJtjg" },
+        { img: "https://img.youtube.com/vi/7wtfhZwyrcc/0.jpg", link: "https://www.youtube.com/watch?v=7wtfhZwyrcc" },
+        { img: "https://img.youtube.com/vi/1G4isv_Fylg/0.jpg", link: "https://www.youtube.com/watch?v=1G4isv_Fylg" },
+        { img: "https://img.youtube.com/vi/tVj0ZTS4WF4/0.jpg", link: "https://www.youtube.com/watch?v=tVj0ZTS4WF4" }
+      ].concat(extraYoutube),
+      music: [
+        { img: "https://img.youtube.com/vi/JGwWNGJdvx8/0.jpg", link: "https://www.youtube.com/watch?v=JGwWNGJdvx8" },
+        { img: "https://img.youtube.com/vi/e-ORhEE9VVg/0.jpg", link: "https://www.youtube.com/watch?v=e-ORhEE9VVg" },
+        { img: "https://img.youtube.com/vi/YQHsXMglC9A/0.jpg", link: "https://www.youtube.com/watch?v=YQHsXMglC9A" },
+        { img: "https://img.youtube.com/vi/RgKAFK5djSk/0.jpg", link: "https://www.youtube.com/watch?v=RgKAFK5djSk" }
+      ].concat(extraMusic),
+      videogames: [
+        { img: "https://img.youtube.com/vi/MmB9b5njVbA/0.jpg", link: "https://www.youtube.com/watch?v=MmB9b5njVbA" },
+        { img: "https://img.youtube.com/vi/2F5vbl9XgHE/0.jpg", link: "https://www.youtube.com/watch?v=2F5vbl9XgHE" },
+        { img: "https://img.youtube.com/vi/QkkoHAzjnUs/0.jpg", link: "https://www.youtube.com/watch?v=QkkoHAzjnUs" },
+        { img: "https://img.youtube.com/vi/V-_O7nl0Ii0/0.jpg", link: "https://www.youtube.com/watch?v=V-_O7nl0Ii0" }
+      ].concat(extraVideogames),
+      books: [
+        { img: "https://img.youtube.com/vi/6XgNFRKrcwc/0.jpg", link: "https://www.youtube.com/watch?v=6XgNFRKrcwc" },
+        { img: "https://img.youtube.com/vi/Ih2JhrRmpT8/0.jpg", link: "https://www.youtube.com/watch?v=Ih2JhrRmpT8" },
+        { img: "https://img.youtube.com/vi/EO4XtR-hpUQ/0.jpg", link: "https://www.youtube.com/watch?v=EO4XtR-hpUQ" },
+        { img: "https://img.youtube.com/vi/LXb3EKWsInQ/0.jpg", link: "https://www.youtube.com/watch?v=LXb3EKWsInQ" }
+      ].concat(extraBooks),
+      services: [
+        { img: "https://img.youtube.com/vi/3KquFZYi6L0/0.jpg", link: "https://www.youtube.com/watch?v=3KquFZYi6L0" },
+        { img: "https://img.youtube.com/vi/EwTZ2xpQwpA/0.jpg", link: "https://www.youtube.com/watch?v=EwTZ2xpQwpA" },
+        { img: "https://img.youtube.com/vi/oHg5SJYRHA0/0.jpg", link: "https://www.youtube.com/watch?v=oHg5SJYRHA0" },
+        { img: "https://img.youtube.com/vi/J---aiyznGQ/0.jpg", link: "https://www.youtube.com/watch?v=J---aiyznGQ" }
+      ].concat(extraServices),
+      photography: photographyData,
+      contact: "For inquiries, email: contact@example.com"
+    };
+    function loadContent(category, el) {
+      let html = '';
+      if (category === 'home') {
+        html += `<h2 class="category-title">Latest</h2><div class="grid">`;
+        Object.keys(categoryData).forEach(key => {
+          if (!['toppicks','photography','contact'].includes(key)) {
+            const items = categoryData[key];
+            if (items && items.length) {
+              const latest = items[items.length - 1];
+              html += `<a href="${latest.link}" target="_blank" class="thumb">
+                         <img src="${latest.img}" alt="Latest from ${key}">
+                         <span class="desc">Latest from ${getDisplayTitle(key)}</span>
+                       </a>`;
+            }
+          }
+        });
+        html += `</div>`;
+      } else if (category === 'contact') {
+        html = `<h2 class="category-title">Contact</h2>
+                <form class="contact-form" action="mailto:ninewinters@hotmail.com" method="POST" enctype="text/plain">
+                  <label for="email">Email:</label>
+                  <input type="email" id="email" name="email" required>
+                  <label for="subject">Subject:</label>
+                  <input type="text" id="subject" name="subject" required>
+                  <label for="message">Message:</label>
+                  <textarea id="message" name="message" rows="4" required></textarea>
+                  <button type="submit">Send</button>
+                </form>`;
+      } else if (category === 'photography') {
+        html += `<h2 class="category-title">Photography</h2><div class="grid">`;
+        categoryData[category].slice().reverse().forEach(item => {
+          html += `<div>
+                     <img src="${item.img}" alt="Photography">
+                   </div>`;
+        });
+        html += `</div>`;
+      } else {
+        const title = getDisplayTitle(category);
+        html += `<h2 class="category-title">${title}</h2><div class="grid">`;
+        categoryData[category].slice().reverse().forEach(item => {
+          html += `<a href="${item.link}" target="_blank" class="thumb">
+                     <img src="${item.img}" alt="${title} thumbnail">
+                     <span class="desc">
+                       This is an extended sample description for ${title}. Enjoy the vibrant display and explore more details by hovering over this thumbnail. More text added to ensure it works well.
+                     </span>
+                   </a>`;
+        });
+        html += `</div>`;
+      }
+      document.getElementById('main-content').innerHTML = html;
+      document.querySelectorAll('.sidebar a').forEach(link => link.classList.remove('active'));
+      if (el) el.classList.add('active');
+      if(window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('main-content').classList.remove('shift');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return false;
+    }
+    function toggleMenu() {
+      const sidebar = document.getElementById('sidebar');
+      const content = document.getElementById('main-content');
+      sidebar.classList.toggle('open');
+      content.classList.toggle('shift');
+    }
+    loadContent('home', document.getElementById('home-link'));
+  </script>
+</body>
+</html>
